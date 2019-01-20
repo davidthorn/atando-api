@@ -18,9 +18,9 @@ export class DQLEndpointManager {
         this.data = {}
     }
 
-    map(endpoint: DQLEndpoint, method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'): DQLEndpoint {
+    map(endpoint: DQLEndpoint, method: 'ITEM' | 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'): DQLEndpoint {
         let d = Object.create(endpoint)
-        d.method = method
+        d.method = method === 'ITEM' ? 'GET' : method
         switch (method) {
             case 'GET':
                 d.resourcePath = `${endpoint.resourcePath}`
@@ -135,41 +135,55 @@ export class DQLEndpointManager {
         const { validation, handlesMethod, environment, headers } = endpointController
         
         this.getControllerKeys(controller).forEach(key => {
+
             switch (key) {
                 case 'get':
-                    this.add(name, this.map({
+                    let get_endpoint = this.map({
                         ...endpoint,
                         controller: undefined,
-                        middleware: endpointController[key].bind(controller)
-                    }, 'GET'));
+                        middleware: endpointController[key]
+                    }, 'GET')
+                    this.add(get_endpoint.resourcePath, get_endpoint , true);
                     break;
                 case 'post':
-                    this.add(name, this.map({
+                    let post_endpoint = this.map({
                         ...endpoint,
                         controller: { environment, validation, headers, handlesMethod },
-                        middleware: endpointController[key].bind(controller)
-                    }, 'POST'), true);
+                        middleware: endpointController[key]
+                    }, 'POST')
+                    this.add(post_endpoint.resourcePath, post_endpoint , true);
                     break;
+                case 'item':
+                    let item_endpoint = this.map({
+                        ...endpoint,
+                        controller: undefined,
+                        middleware: endpointController[key]
+                    }, 'ITEM')
+                    this.add(item_endpoint.resourcePath,item_endpoint, true);
+                break;
                 case 'patch':
-                    this.add(name, this.map({
+                    let patch_endpoint = this.map({
                         ...endpoint,
-                        controller: undefined,
-                        middleware: endpointController[key].bind(controller)
-                    }, 'PATCH'));
-                    break;
+                        controller: { environment, validation, headers, handlesMethod },
+                        middleware: endpointController[key]
+                    }, 'PATCH')
+                    this.add(patch_endpoint.resourcePath,patch_endpoint, true);
+                break;
                 case 'put':
-                    this.add(name, this.map({
+                    let put_endpoint = this.map({
                         ...endpoint,
-                        controller: undefined,
-                        middleware: endpointController[key].bind(controller)
-                    }, 'PUT'));
+                        controller: { environment, validation, headers, handlesMethod },
+                        middleware: endpointController[key]
+                    }, 'PUT')
+                    this.add(put_endpoint.resourcePath, put_endpoint , true);
                     break;
                 case 'delete':
-                    this.add(name, this.map({
+                    let delete_endpoint = this.map({
                         ...endpoint,
-                        controller: undefined,
-                        middleware: endpointController[key].bind(controller)
-                    }, 'DELETE'));
+                        controller: { environment, validation, headers, handlesMethod },
+                        middleware: endpointController[key]
+                    }, 'DELETE')
+                    this.add(delete_endpoint.resourcePath, delete_endpoint , true);
                     break;
                 default: break;
             }

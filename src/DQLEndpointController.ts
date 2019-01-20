@@ -54,6 +54,14 @@ export interface DQLEndpointControllerType {
     get?: RequestHandler
 
     /**
+     * Called if the request method is GET with an id param and validation handler called next()
+     *
+     * @type {RequestHandler}
+     * @memberof EndpointController
+     */
+    item?: RequestHandler
+
+    /**
      * Called if the request method is POST and validation handler called next()
      *
      * @type {RequestHandler}

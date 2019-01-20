@@ -1,42 +1,36 @@
-import { DQLEndpointController } from "../src/DQLEndpointController";
-import { NextFunction, Response, Request } from "express";
-import { DQLEndpoint } from "../src/DQLEndpoint";
-import Joi from 'joi'
-import { users, User } from './users'
-import uuid from 'uuid'
-import { UserPatchSchema } from "../schema/users/UserPatch.schema";
-import { UserDeleteSchema } from "../schema/users/UserDelete.schema";
+import { NextFunction, Request, Response } from "express";
+import Joi from 'joi';
+import { UserRepository } from '../repositories';
 import { UserCreateSchema } from "../schema/users/UserCreate.schema";
-
-let globalUsers = users
+import { UserDeleteSchema } from "../schema/users/UserDelete.schema";
+import { UserPatchSchema } from "../schema/users/UserPatch.schema";
+import { DQLEndpoint } from "../src/DQLEndpoint";
+import { DQLEndpointController } from "../src/DQLEndpointController";
 
 class UserController extends DQLEndpointController {
 
-    saveUser: User[] = users
-
-    constructor() {
+    constructor () {
         super()
     }
 
-    async headers(request: Request , response: Response , next: NextFunction){ 
-
-        const {  error } = Joi.object({
-            "content-type": Joi.string().allow(['application/json' , 'x-www-form-urlencoded']).required()
+    async headers(request: Request, response: Response, next: NextFunction) {
+        const { error } = Joi.object({
+            "content-type": Joi.string().allow(['application/json', 'x-www-form-urlencoded']).required()
         }).validate(request.headers, {
             allowUnknown: true
         })
 
-        if(error === null) {
+        if (error === null) {
             next()
         } else {
             response.status(422).send({
                 error: 'headers where incorrect'
             })
-        } 
+        }
 
     }
 
-    async validation(request: Request , response: Response , next: NextFunction){
+    async validation(request: Request, response: Response, next: NextFunction) {
 
         let objectSchema: Joi.ObjectSchema
 
@@ -44,73 +38,91 @@ class UserController extends DQLEndpointController {
             return schema.validate(request.body)
         }
 
-        switch(request.method) {
+        switch (request.method) {
             case 'DELETE':
-            objectSchema = UserDeleteSchema
-            break;
+                objectSchema = UserDeleteSchema
+                break;
             case 'PATCH':
-            objectSchema = UserPatchSchema
-            break;
-            default: 
-            objectSchema = UserCreateSchema
+                objectSchema = UserPatchSchema
+                break;
+            default:
+                objectSchema = UserCreateSchema
         }
 
-        const { value, error  } = validationResult(objectSchema)
+        const { error } = validationResult(objectSchema)
 
-        if(error === null) {
+        if (error === null) {
             next()
         } else {
             response.status(422).send(error)
         }
-        
 
     }
 
-    async post(request: Request , response: Response , next: NextFunction) {
-        globalUsers.push({
-            ...request.body,
-            id: uuid.v4(),
-            deleted: false
-        })
-
-        console.log('added user' , globalUsers)
-
-        response.status(201).send({
-            message: "success"
-        })
+    /**
+     * Create User
+     *
+     * @param {Request} request
+     * @param {Response} response
+     * @param {NextFunction} next
+     * @memberof UserController
+     */
+    async post(request: Request, response: Response, next: NextFunction) {
+        let repo = new UserRepository()
+        let user = repo.create(request.body)
+        response.status(201).send(user)
     }
 
-    async patch(request: Request , response: Response , next: NextFunction) {
-        globalUsers = globalUsers.map( i => {
-            if(request.body.id === i.id) {
-                return {
-                    ...request.body,
-                    deleted: false
-                }
-            }
-            return i
-        } )
-        response.status(200).send({
-            message: "updated"
-        })
+    async patch(request: Request, response: Response, next: NextFunction) {
+        let repo = new UserRepository()
+        let user = repo.update(request.params.id, request.body)
+
+        if (user === undefined) {
+
+            response.status(404).send({
+                message: 'User Not Found'
+            })
+            return
+        }
+
+        response.status(200).send(user)
     }
 
-    async delete(request: Request , response: Response , next: NextFunction) {
+    async item(request: Request, response: Response, next: NextFunction) {
+        let repo = new UserRepository()
+        let user = repo.get(request.params.id)
 
-        globalUsers = globalUsers.map( i => {
-            if(request.body.id === i.id) {
-                i.deleted = true
-            }
-            return i
-        } )
+        if (user === undefined) {
 
-        response.status(200).send({
-            message: "user deleted"
-        })
+            response.status(404).send({
+                message: 'User Not Found'
+            })
+            return
+        }
+
+        response.status(200).send(user)
     }
 
-    async get(request: Request , response: Response , next: NextFunction) {
-        response.status(200).send(globalUsers.filter(i => { return i.deleted === false } ))
+    async delete(request: Request, response: Response, next: NextFunction) {
+
+        let repo = new UserRepository()
+        let user = repo.delete(request.params.id)
+
+        if (user === undefined) {
+
+            response.status(404).send({
+                message: 'User Not Found'
+            })
+            return
+        }
+
+        response.status(200).send(user)
+    }
+
+    async get(request: Request, response: Response, next: NextFunction) {
+        let repo = new UserRepository()
+        let users = repo.all()
+        response.status(200).send(users)
     }
 
 }
@@ -128,4 +140,4 @@ const endpoint = {
     endpoint: user
 }
 
-export { endpoint as user }
+export { endpoint as user };

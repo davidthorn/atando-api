@@ -1,8 +1,8 @@
-import { DQLEndpointProperty } from './DQLEndpointProperty';
+import isboolean from 'lodash.isboolean';
 import { DQLEndpoint } from './DQLEndpoint';
-import { isBoolean, isNumber,isString } from './PropertyValidators';
-import isboolean from 'lodash.isboolean'
-import { DQLEndpointController, DQLEndpointControllerType } from './DQLEndpointController';
+import { DQLEndpointController } from './DQLEndpointController';
+import { DQLEndpointProperty } from './DQLEndpointProperty';
+import { isBoolean, isNumber, isString } from './PropertyValidators';
 
 export class DQLEndpointManager {
 
@@ -51,9 +51,9 @@ export class DQLEndpointManager {
      * @returns
      * @memberof DQLEndpointManager
      */
-    add(name: string, endpoint: DQLEndpoint , skipController: boolean = false) {
+    add(name: string, endpoint: DQLEndpoint, skipController: boolean = false) {
 
-        if(endpoint.controller !== undefined && !skipController) {
+        if (endpoint.controller !== undefined && !skipController) {
             return this.addControllerEndpoints(endpoint, endpoint.controller, name);
         }
 
@@ -79,22 +79,22 @@ export class DQLEndpointManager {
      * @returns {string[]}
      * @memberof DQLEndpointManager
      */
-    getControllerKeys<T extends DQLEndpointController> (controller: T): string[] {
+    getControllerKeys<T extends DQLEndpointController>(controller: T): string[] {
 
-        switch(typeof controller) {
+        switch (typeof controller) {
             case 'function':
-            return Object.getOwnPropertyNames((controller as DQLEndpointController ).prototype)
-            break;
+                return Object.getOwnPropertyNames((controller as DQLEndpointController).prototype)
+                break;
             case 'object':
-            if(controller instanceof DQLEndpointController) {
-                return Object.getOwnPropertyNames(Object.getPrototypeOf(controller))
-            } else {
-                return Object.keys(controller)
-            }
-            break
+                if (controller instanceof DQLEndpointController) {
+                    return Object.getOwnPropertyNames(Object.getPrototypeOf(controller))
+                } else {
+                    return Object.keys(controller)
+                }
+                break
             default: return []
         }
-        
+
     }
 
     /**
@@ -106,18 +106,18 @@ export class DQLEndpointManager {
      * @memberof DQLEndpointManager
      */
     getControllerPrototype<T extends DQLEndpointController>(controller: T): DQLEndpointController {
-        switch(typeof controller) {
+        switch (typeof controller) {
             case 'function':
-            return (controller as DQLEndpointController ).prototype
-            case 'object':
-            if(controller instanceof DQLEndpointController) {
                 return (controller as DQLEndpointController).prototype
-            } else {
-                return controller
-            }
-            break
-            default: 
-            throw new Error('not knowing what is going on here')
+            case 'object':
+                if (controller instanceof DQLEndpointController) {
+                    return (controller as DQLEndpointController).prototype
+                } else {
+                    return controller
+                }
+                break
+            default:
+                throw new Error('not knowing what is going on here')
         }
     }
 
@@ -130,10 +130,10 @@ export class DQLEndpointManager {
      * @memberof DQLEndpointManager
      */
     addControllerEndpoints(endpoint: DQLEndpoint, controller: DQLEndpointController, name: string): void {
-        
+
         const endpointController = this.getControllerPrototype(controller)
         const { validation, handlesMethod, environment, headers } = endpointController
-        
+
         this.getControllerKeys(controller).forEach(key => {
 
             switch (key) {
@@ -143,7 +143,7 @@ export class DQLEndpointManager {
                         controller: undefined,
                         middleware: endpointController[key]
                     }, 'GET')
-                    this.add(get_endpoint.resourcePath, get_endpoint , true);
+                    this.add(get_endpoint.resourcePath, get_endpoint, true);
                     break;
                 case 'post':
                     let post_endpoint = this.map({
@@ -151,7 +151,7 @@ export class DQLEndpointManager {
                         controller: { environment, validation, headers, handlesMethod },
                         middleware: endpointController[key]
                     }, 'POST')
-                    this.add(post_endpoint.resourcePath, post_endpoint , true);
+                    this.add(post_endpoint.resourcePath, post_endpoint, true);
                     break;
                 case 'item':
                     let item_endpoint = this.map({
@@ -159,23 +159,23 @@ export class DQLEndpointManager {
                         controller: undefined,
                         middleware: endpointController[key]
                     }, 'ITEM')
-                    this.add(item_endpoint.resourcePath,item_endpoint, true);
-                break;
+                    this.add(item_endpoint.resourcePath, item_endpoint, true);
+                    break;
                 case 'patch':
                     let patch_endpoint = this.map({
                         ...endpoint,
                         controller: { environment, validation, headers, handlesMethod },
                         middleware: endpointController[key]
                     }, 'PATCH')
-                    this.add(patch_endpoint.resourcePath,patch_endpoint, true);
-                break;
+                    this.add(patch_endpoint.resourcePath, patch_endpoint, true);
+                    break;
                 case 'put':
                     let put_endpoint = this.map({
                         ...endpoint,
                         controller: { environment, validation, headers, handlesMethod },
                         middleware: endpointController[key]
                     }, 'PUT')
-                    this.add(put_endpoint.resourcePath, put_endpoint , true);
+                    this.add(put_endpoint.resourcePath, put_endpoint, true);
                     break;
                 case 'delete':
                     let delete_endpoint = this.map({
@@ -183,7 +183,7 @@ export class DQLEndpointManager {
                         controller: { environment, validation, headers, handlesMethod },
                         middleware: endpointController[key]
                     }, 'DELETE')
-                    this.add(delete_endpoint.resourcePath, delete_endpoint , true);
+                    this.add(delete_endpoint.resourcePath, delete_endpoint, true);
                     break;
                 default: break;
             }

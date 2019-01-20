@@ -140,35 +140,35 @@ export class DQLEndpointManager {
                     this.add(name, this.map({
                         ...endpoint,
                         controller: undefined,
-                        middleware: endpointController[key]
+                        middleware: endpointController[key].bind(controller)
                     }, 'GET'));
                     break;
                 case 'post':
                     this.add(name, this.map({
                         ...endpoint,
                         controller: { environment, validation, headers, handlesMethod },
-                        middleware: endpointController[key]
+                        middleware: endpointController[key].bind(controller)
                     }, 'POST'), true);
                     break;
                 case 'patch':
                     this.add(name, this.map({
                         ...endpoint,
                         controller: undefined,
-                        middleware: endpointController[key]
+                        middleware: endpointController[key].bind(controller)
                     }, 'PATCH'));
                     break;
                 case 'put':
                     this.add(name, this.map({
                         ...endpoint,
                         controller: undefined,
-                        middleware: endpointController[key]
+                        middleware: endpointController[key].bind(controller)
                     }, 'PUT'));
                     break;
                 case 'delete':
                     this.add(name, this.map({
                         ...endpoint,
                         controller: undefined,
-                        middleware: endpointController[key]
+                        middleware: endpointController[key].bind(controller)
                     }, 'DELETE'));
                     break;
                 default: break;

@@ -7,6 +7,7 @@ import DQLAuthenticationManager from './DQLAuthenticationManager';
 import { DQLEndpoint } from './DQLEndpoint';
 import { DQLEndpointManager } from './DQLEndpointManager';
 import bodyParser = require('body-parser');
+import cors from 'cors'
 
 export class DQLServer {
 
@@ -202,7 +203,9 @@ export class DQLServer {
      */
     listen() {
 
+        
         this.handleLogging()
+        this.server.use(cors())
         this.server.use(this.authManager.authenticate.bind(this.authManager))
         this.server.use(bodyParser.urlencoded({ extended: true }))
         this.server.use(bodyParser.json({}))

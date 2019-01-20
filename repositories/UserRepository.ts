@@ -1,31 +1,31 @@
-import { User } from './User'
-import uuid from 'uuid'
-import fs from 'fs'
-import path from 'path'
+import fs from 'fs';
+import path from 'path';
+import uuid from 'uuid';
+import { User } from './User';
 
-export class UserRepository  {
+export class UserRepository {
 
-    constructor() {}
+    constructor () { }
 
-    create(data: { name: string, surname: string , email: string }) : User {
+    create(data: { name: string, surname: string, email: string }): User {
 
         const user: User = {
             ...data,
             id: uuid.v4()
         }
-        
+
         let users = this.all()
         users.push(user)
-        const usersPath = path.join(__dirname , 'users.json')
-        fs.writeFileSync(usersPath , JSON.stringify(users , null, 4))
+        const usersPath = path.join(__dirname, 'users.json')
+        fs.writeFileSync(usersPath, JSON.stringify(users, null, 4))
 
         return user
 
     }
 
-    all(): User[]{
-        const usersPath = path.join(__dirname , 'users.json')
-        let users = fs.readFileSync(usersPath , {
+    all(): User[] {
+        const usersPath = path.join(__dirname, 'users.json')
+        let users = fs.readFileSync(usersPath, {
             encoding: 'utf8'
         })
         let json: User[] = JSON.parse(users)
@@ -37,30 +37,30 @@ export class UserRepository  {
         return _users.length === 1 ? _users[0] : undefined
     }
 
-    update(id: string , data: { name?: string ,  surname?: string }): User | undefined {
-        
+    update(id: string, data: { name?: string, surname?: string }): User | undefined {
+
         let user = this.get(id)
-        
-        if(user === undefined) return undefined
-        
-        if(data.name !== undefined) {
+
+        if (user === undefined) return undefined
+
+        if (data.name !== undefined) {
             user.name = data.name
         }
 
-        if(data.surname !== undefined) {
+        if (data.surname !== undefined) {
             user.surname = data.surname
         }
 
         const users = this.all().map(i => {
-            if(i.id === id) {
+            if (i.id === id) {
                 return user!
             }
 
             return i
         })
 
-        const usersPath = path.join(__dirname , 'users.json')
-        fs.writeFileSync(usersPath , JSON.stringify(users , null, 4))
+        const usersPath = path.join(__dirname, 'users.json')
+        fs.writeFileSync(usersPath, JSON.stringify(users, null, 4))
 
         return user
     }
@@ -68,13 +68,13 @@ export class UserRepository  {
     delete(id: string): User | undefined {
 
         const user = this.get(id)
-        
-        if(user === undefined) return undefined
+
+        if (user === undefined) return undefined
 
         const users = this.all().filter(i => i.id !== id)
 
-        const usersPath = path.join(__dirname , 'users.json')
-        fs.writeFileSync(usersPath , JSON.stringify(users , null, 4))
+        const usersPath = path.join(__dirname, 'users.json')
+        fs.writeFileSync(usersPath, JSON.stringify(users, null, 4))
 
         return user
     }

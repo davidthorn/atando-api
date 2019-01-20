@@ -34,7 +34,7 @@ export class DQLServer {
     }
 
     convertUrl(url: string, params: { [id: string]: string }): string {
-
+        url = url.substring(url.length - 1, url.length) === '/' ? url.substring(0, url.length - 1) : url
         let output = url
 
         Object.keys(params).forEach(key => {
@@ -114,12 +114,16 @@ export class DQLServer {
      */
     handleMethodNotAllowed(request: Request, response: Response, next: () => void) {
 
+        console.log('handleMethodNotAllowed' , request.params, request.originalUrl)
         const url = this.convertUrl(request.originalUrl, request.params)
         fs.appendFileSync(path.join(process.cwd(), 'handleMethodNotAllowed.log'), JSON.stringify({ originalUrl: request.originalUrl, _url: url, params: request.params, url: request.url, p: `${url}|${request.method}` }, null, 2), { encoding: 'utf8' })
 
         const resources = this.endpoints.getEndpoints().filter(i => {
             const regMatch = i.resourcePath.replace(/:[\w\d]+/, '[^\/]+')
             const match = url.match(new RegExp(regMatch, 'g'))
+            console.log('handleMethodNotAllowed match' , {
+                match, convertedUrl: url, endpoint: i, regMatch
+            })
             if (match === null) return false
             if (match[0] === url) return true
             return false
@@ -269,25 +273,25 @@ export class DQLServer {
 
                     switch (method) {
                         case 'GET':
-                            this.server.get(resourcePath, mw.bind(data.endpoint))
+                            this.server.get(resourcePath, mw)
                             break;
                         case 'DELETE':
-                            this.server.delete(resourcePath, this.handleValidation.bind(this))
-                            this.server.delete(resourcePath, mw.bind(data.endpoint))
+                            //this.server.delete(resourcePath, this.handleValidation.bind(this))
+                            this.server.delete(resourcePath, mw)
                             break;
                         case 'PATCH':
-                            this.server.patch(resourcePath, this.handleValidation.bind(this))
-                            this.server.patch(resourcePath, mw.bind(data.endpoint))
+                            //this.server.patch(resourcePath, this.handleValidation.bind(this))
+                            this.server.patch(resourcePath, mw)
                             break;
                         case 'PUT':
-                            this.server.put(resourcePath, this.handleValidation.bind(this))
-                            this.server.put(resourcePath, mw.bind(data.endpoint))
+                            //this.server.put(resourcePath, this.handleValidation.bind(this))
+                            this.server.put(resourcePath, mw)
                             break;
                         case 'POST':
-                            this.server.post(resourcePath, mw.bind(data.endpoint))
+                            this.server.post(resourcePath, mw)
                             break
                         case 'HEAD':
-                            this.server.head(resourcePath, mw.bind(data.endpoint))
+                            this.server.head(resourcePath, mw)
                             break;
                     }
                 })

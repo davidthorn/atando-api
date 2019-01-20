@@ -95,8 +95,8 @@ class UserController extends DQLEndpointController {
      */
     async post(request: Request, response: Response, next: NextFunction) {
         let repo = new UserRepository()
-        let { status, data } = await repo.create(request.body)
-            .then(res => {
+        let { status, data } = await repo.createIfNotExists(request.body)
+            .then((res) => {
                 return {
                     status: 201,
                     data: res

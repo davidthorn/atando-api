@@ -7,3 +7,6 @@ test/**/*.d.ts
 *.log
 .nyc_output
 post
+repositories/users.json
+
+repositories/companies.json

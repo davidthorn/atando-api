@@ -1,6 +1,6 @@
 version: '3'
 services:
-  atando:
+  atando-api:
     build:
       context: .
       args: 
@@ -8,11 +8,23 @@ services:
         _port: 3000
     links:
     - db
-    container_name: atando-react
+    container_name: atando-api
     ports:
     - 3000:3000
     volumes:
     - /home/david/atando-api:/app
+    
+  atando-app:
+    build:
+      context: ../atando-app/
+    links:
+    - db
+    - atando-api
+    container_name: atando-app
+    ports:
+    - 3001:3000
+    volumes:
+    - /home/david/atando-app:/app
     
 
   db:

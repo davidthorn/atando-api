@@ -14,6 +14,11 @@ class UserController extends DQLEndpointController {
     }
 
     async headers(request: Request, response: Response, next: NextFunction) {
+
+        if (['DELETE', 'GET'].includes(request.method)) {
+            return next()
+        }
+
         const { error } = Joi.object({
             "content-type": Joi.string().allow(['application/json', 'x-www-form-urlencoded']).required()
         }).validate(request.headers, {
@@ -35,7 +40,9 @@ class UserController extends DQLEndpointController {
         let objectSchema: Joi.ObjectSchema
 
         let validationResult = (schema: Joi.ObjectSchema) => {
-            return schema.validate(request.body)
+            return schema.validate(request.body, {
+                abortEarly: false
+            })
         }
 
         switch (request.method) {
@@ -54,7 +61,26 @@ class UserController extends DQLEndpointController {
         if (error === null) {
             next()
         } else {
-            response.status(422).send(error)
+
+            let obj: { [key: string]: any } = { errors: {} }
+            error.details.filter(i => {
+                return i.type !== 'object.allowUnknown'
+            })
+                .forEach(i => {
+                    const context = i.context
+                    if (context === undefined) return
+                    const key = context.key!
+
+                    if (obj.errors[key] === undefined) {
+                        obj.errors[key] = []
+                    }
+
+                    obj.errors[key].push(i.message)
+                })
+
+            obj.jio = error
+
+            response.status(422).send(obj)
         }
 
     }
@@ -69,8 +95,27 @@ class UserController extends DQLEndpointController {
      */
     async post(request: Request, response: Response, next: NextFunction) {
         let repo = new UserRepository()
-        let user = repo.create(request.body)
-        response.status(201).send(user)
+        let { status, data } = await repo.create(request.body)
+            .then(res => {
+                return {
+                    status: 201,
+                    data: res
+                }
+            })
+            .catch(() => {
+                return {
+                    status: 400,
+                    data:{
+                        errors: {
+                            email: [
+                                'Email already exists'
+                            ]
+                        }
+                    }
+                        
+                }
+            })
+        response.status(status).send(data)
     }
 
     async patch(request: Request, response: Response, next: NextFunction) {

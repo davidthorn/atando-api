@@ -1,9 +1,11 @@
 import { user } from './endpoints/user.endpoint'
-import login from './endpoints/login'
+import { company } from './endpoints/company.endpoint'
+
 import DQLServer from './src/DQLServer'
 
 const server = new DQLServer()
 
+server.add(company.resourcePath , company.endpoint)
 server.add(user.resourcePath , user.endpoint)
 server.host = process.env.HOST
 server.port = parseInt(process.env.PORT || '3000') 

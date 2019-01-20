@@ -9,6 +9,5 @@ chai.use(require('chai-http'));
 @suite('User Endpoint')
 export class UserEndpointUnitTest extends BaseEndpointUnitTest {
 
-   
 
 }

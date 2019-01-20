@@ -7,14 +7,22 @@ export class UserRepository {
 
     constructor () { }
 
-    create(data: { name: string, surname: string, email: string }): User {
+    async create(data: { name: string, surname: string, email: string }): Promise<User> {
 
         const user: User = {
             ...data,
             id: uuid.v4()
         }
 
+        
         let users = this.all()
+        
+        if(users.filter( i => i.email.toLowerCase() === user.email.toLowerCase() ).length === 1) {
+            return Promise.reject({
+                message: 'ALREADY_EXIST'
+            })
+        }
+        
         users.push(user)
         const usersPath = path.join(__dirname, 'users.json')
         fs.writeFileSync(usersPath, JSON.stringify(users, null, 4))

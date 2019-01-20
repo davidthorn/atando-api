@@ -1,17 +1,27 @@
-version: '3.0'
-
+version: '3'
 services:
-    firebase:
-      container_name: firebase
-      ports:
-        - 5000:5000
-      build:
-        context: .
-        args:
-          _port: 5000
-          _host: 0.0.0.0
-        # _firebase_port: 
-          _firebase_host: https://www.googleapis.com
-          _api_key: FIREBASE_API_KEY_GOES_HERE
-      volumes:
-        - /home/david/dql:/app
+  atando:
+    build: .
+    links:
+    - db
+    container_name: atando-react
+    ports:
+    - 3000:3000
+    volumes:
+    - /home/david/atando-api:/app
+    environment: 
+        _host: 'localhost'
+        _port: 3000
+
+  db:
+    container_name: atando-mysql
+    volumes:
+    - /tmp/mysql:/var/lib/mysql
+    image: mysql
+    ports:
+      - "33006:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: MYSQL_ROOT_PASSWORD
+      MYSQL_USER: MYSQL_USER
+      MYSQL_PASSWORD: USER_PASSWORD
+      MYSQL_DATABASE: DATABASE_NAME

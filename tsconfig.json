@@ -61,6 +61,7 @@
     "resolveJsonModule": true
   },
   "include": [
+    "repositories",
     "middlewares",
     "schema",
     "endpoints",

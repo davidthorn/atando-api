@@ -6,6 +6,8 @@ services:
       args: 
         _host: 0.0.0.0
         _port: 3000
+        _firebase_host: https://www.googleapis.com
+        _api_key: API_KEY
     links:
     - db
     container_name: atando-api

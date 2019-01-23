@@ -1,15 +1,14 @@
 import { NextFunction } from 'connect';
 import { Request, Response } from 'express';
 import * as joi from 'joi';
-import { ValidationMiddleware, EnvironmentValidationMiddleware } from '../middlewares';
-import { LoginErrorMessage, LoginSchema, ValidateSchema } from '../schema';
+import { EnvironmentValidationMiddleware, ValidationMiddleware } from '../middlewares';
+import { LoginErrorMessage, LoginSchema } from '../schema';
+import { FirebaseAuthEnvironmentMessage, FirebaseAuthEnvironmentSchema } from '../schema/FirebaseAuthEnvironment.schema';
 import { HttpMethod } from '../src/DQLAuthentication';
 import { DQLEndpoint } from '../src/DQLEndpoint';
 import { DQLEndpointController } from '../src/DQLEndpointController';
 import { firebaseSignupEmailPassword } from '../src/firebase-auth';
 import handleFirebaseError from '../src/firebase-auth/handleFirebaseError';
-import { FirebaseAuthEnvironmentSchema, FirebaseAuthEnvironmentMessage } from '../schema/FirebaseAuthEnvironment.schema';
-import { mapValidationError } from '../schema/mapValidationError';
 
 const validationMethods: HttpMethod[] = [
     'POST'

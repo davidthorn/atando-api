@@ -7,7 +7,7 @@ services:
         _host: 0.0.0.0
         _port: 3000
         _firebase_host: https://www.googleapis.com
-        _api_key: API_KEY
+        _api_key: _api_key
     links:
     - db
     container_name: atando-api
@@ -39,5 +39,5 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: MYSQL_ROOT_PASSWORD
       MYSQL_USER: MYSQL_USER
-      MYSQL_PASSWORD: USER_PASSWORD
-      MYSQL_DATABASE: DATABASE_NAME
+      MYSQL_PASSWORD: MYSQL_PASSWORD
+      MYSQL_DATABASE: MYSQL_DATABASE

@@ -1,11 +1,11 @@
 import { user } from './endpoints/user.endpoint'
 import { company } from './endpoints/company.endpoint'
 import { login } from './endpoints/login'
+import { dqllog } from './log'
 
 import DQLServer from './src/DQLServer'
 
 const server = new DQLServer()
-
 
 server.addAuthentication({
     allowedMethod: [
@@ -33,15 +33,16 @@ server.add(login.resourcePath , login.endpoint)
 server.add(company.resourcePath , company.endpoint)
 server.add(user.resourcePath , user.endpoint)
 server.host = process.env.HOST
-server.port = parseInt(process.env.PORT || '3000') 
+server.port = parseInt(process.env.PORT || '3000')
 
-console.log({
+dqllog('Environment', {
     host: server.host || 'not set',
     port: server.port || 'not set',
     firebase: {
-        api_key: process.env.API_KEY,
-        port: process.env.FIREBASE_PORT,
-        host: process.env.FIREBASE_HOST
+        DEBUG: process.env.DEBUG,
+        FIREBASE_PORT: process.env.FIREBASE_PORT,
+        FIREBASE_HOST: process.env.FIREBASE_HOST,
+        API_KEY: process.env.API_KEY
     }
 })
 

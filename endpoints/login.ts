@@ -56,7 +56,7 @@ class LoginController extends DQLEndpointController {
 
     async headers(request: Request, response: Response, next: NextFunction) {
 
-        dqllog('Testing Headers Middleware' , {
+        dqllog('Testing Headers Middleware', {
             url: request.originalUrl,
             method: request.method,
             headers: request.headers
@@ -83,7 +83,7 @@ class LoginController extends DQLEndpointController {
                 message: 'Request required application/json'
             }
 
-            dqllog('Headers Failed: ' , dataResponse)
+            dqllog('Headers Failed: ', dataResponse)
 
             response.status(400).send(dataResponse)
         }
@@ -92,7 +92,7 @@ class LoginController extends DQLEndpointController {
 
     async validation(request: Request, response: Response, next: NextFunction) {
 
-        dqllog('Validation request.body Middleware' , {
+        dqllog('Validation request.body Middleware', {
             url: request.originalUrl,
             method: request.method,
             body: {
@@ -133,7 +133,7 @@ class LoginController extends DQLEndpointController {
                 }
             })
 
-            dqllog('Failed:'  , responseData)
+            dqllog('Failed:', responseData)
 
             response.status(400).send(responseData)
         }
@@ -148,7 +148,7 @@ class LoginController extends DQLEndpointController {
      */
     async post(request: Request, response: Response) {
 
-        dqllog(`Validation ${request.originalUrl} ${request.method} Middleware` , {
+        dqllog(`Validation ${request.originalUrl} ${request.method} Middleware`, {
             url: request.originalUrl,
             method: request.method,
             body: {
@@ -166,9 +166,11 @@ class LoginController extends DQLEndpointController {
             API_KEY: login.env!.API_KEY!
         }).catch((responseError: any) => {
             const error = handleFirebaseError(responseError)
-            dqllog('Failed:'  , error)
-            response.status(error.error.code).send(convertError(request.body , error))
+            dqllog('Failed:', error)
+            response.status(error.error.code).send(error)
         })
+
+        dqllog('firebaseAuthLoginEmailPassword Response' , result)
 
         response.status(200).send(result)
 
@@ -176,7 +178,7 @@ class LoginController extends DQLEndpointController {
 
 }
 
-const login: DQLEndpoint = {
+const login: DQLEndpoint<LoginController> = {
 
     resourcePath: '/login',
     body: {},
@@ -188,7 +190,7 @@ const login: DQLEndpoint = {
     }
 
 }
-login.controller = LoginController
+login.controller = new LoginController
 
 
 const endpoint = {

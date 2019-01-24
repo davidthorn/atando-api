@@ -9,8 +9,9 @@ import DQLAuthenticationManager from './DQLAuthenticationManager';
 import { DQLEndpoint } from './DQLEndpoint';
 import { DQLEndpointManager } from './DQLEndpointManager';
 import bodyParser = require('body-parser');
+import { DQLEndpointController } from './DQLEndpointController';
 
-export class DQLServer {
+export class DQLServer<T extends DQLEndpointController> {
 
     /**
      * The express server
@@ -24,7 +25,7 @@ export class DQLServer {
 
     host?: string
 
-    endpoints: DQLEndpointManager
+    endpoints: DQLEndpointManager<T>
 
     authManager: DQLAuthenticationManager
 
@@ -55,7 +56,7 @@ export class DQLServer {
      * @param {{ resourcePath: string , endpoint: DQLEndpoint}} data
      * @memberof DQLServer
      */
-    handleStaticContent(data: { resourcePath: string, endpoint: DQLEndpoint }) {
+    handleStaticContent(data: { resourcePath: string, endpoint: DQLEndpoint<T> }) {
 
         if (data.endpoint.options === undefined) return
         const { publicDir, rootDir } = data.endpoint.options!
@@ -169,7 +170,7 @@ export class DQLServer {
      * @returns {DQLServer}
      * @memberof DQLServer
      */
-    add(resourcePath: string, endpoint: DQLEndpoint): DQLServer {
+    add(resourcePath: string, endpoint: DQLEndpoint<T>): DQLServer<T> {
         this.endpoints.add(resourcePath, endpoint)
         this.handleStaticContent({ resourcePath, endpoint })
         return this
@@ -350,7 +351,7 @@ export class DQLServer {
         }
     }
 
-    private mapEnvironmentVariables(data: { resourcePath: string; endpoint: DQLEndpoint; }): { resourcePath: string; endpoint: DQLEndpoint; } {
+    private mapEnvironmentVariables(data: { resourcePath: string; endpoint: DQLEndpoint<T> }): { resourcePath: string; endpoint: DQLEndpoint<T>; } {
         if (data.endpoint.env !== undefined) {
             Object.keys(data.endpoint.env).forEach(key => {
                 dqllog(`Mapping ENV ${key} : ${process.env[key]} to endpoint ${data.endpoint.resourcePath}:${data.endpoint.method}`)

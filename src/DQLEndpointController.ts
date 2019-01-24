@@ -3,6 +3,29 @@ import { HttpMethod } from "./DQLAuthentication";
 
 export interface DQLEndpointControllerType {
 
+    /**
+     * Http Methods qhich should not be validated by the validation middleware
+     *
+     * @type {HttpMethod[]}
+     * @memberof DQLEndpointControllerType
+     */
+    excludeMethods: HttpMethod[]
+
+    /**
+     * Returns true if the HttpMethod is not included in the excludesMethods
+     *
+     * @param {HttpMethod} method
+     * @returns {boolean}
+     * @memberof DQLEndpointControllerType
+     */
+    shouldValidate(method: HttpMethod): boolean 
+
+    /**
+     * Middleware which handles the validation of headers sent in the request
+     *
+     * @type {RequestHandler}
+     * @memberof DQLEndpointControllerType
+     */
     environment?: RequestHandler
 
     /**
@@ -99,8 +122,16 @@ export interface DQLEndpointControllerType {
 
 export class DQLEndpointController implements DQLEndpointControllerType {
 
+    /// The http methods which should not be validated
+    excludeMethods: HttpMethod[] = []
+
     constructor () { }
 
     [key: string]: any
+
+    shouldValidate(method: HttpMethod): boolean {
+        return !this.excludeMethods.includes(method)
+    }
+
 
 }

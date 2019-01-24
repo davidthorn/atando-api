@@ -3,28 +3,28 @@ import { DQLEndpointController } from './DQLEndpointController';
 import { RequestHandler } from 'express';
 import { HttpMethod } from './DQLAuthentication';
 
-export class DQLEndpointControllerManager {
+export class DQLEndpointControllerManager<T extends DQLEndpointController> {
 
-    endpoint:DQLEndpoint
+    endpoint:DQLEndpoint<T>
 
-    controller: DQLEndpointController
+    controller: T
 
-    constructor(endpoint: DQLEndpoint) {
+    constructor(endpoint: DQLEndpoint<T>) {
         this.endpoint = endpoint
         if(this.endpoint.controller === undefined) throw new Error('The controller property of the endpoint must be set')
         this.controller = this.endpoint.controller
     }
 
-    handle(): DQLEndpoint[] {
+    handle(): DQLEndpoint<T>[] {
 
         const methods: string[] = [ 'POST' , 'PUT' , 'PATCH' , 'GET' , 'DELETE' ]
 
-        const endpoints: DQLEndpoint[] = Object.keys(this.controller)
+        const endpoints: DQLEndpoint<T>[] = Object.keys(this.controller)
                             .filter(i => { return i !== undefined && typeof this.controller[i] === 'function' })
                             .filter(i => {
                                 return methods.includes(i.toUpperCase())
                             })
-                            .map((i): DQLEndpoint => {
+                            .map((i): DQLEndpoint<T> => {
                                 return {
                                     ...this.endpoint,
                                     method: i.toUpperCase()  as HttpMethod,

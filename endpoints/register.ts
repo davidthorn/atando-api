@@ -4,17 +4,12 @@ import * as joi from 'joi';
 import { EnvironmentValidationMiddleware, ValidationMiddleware } from '../middlewares';
 import { LoginErrorMessage, LoginSchema } from '../schema';
 import { FirebaseAuthEnvironmentMessage, FirebaseAuthEnvironmentSchema } from '../schema/FirebaseAuthEnvironment.schema';
-import { HttpMethod } from '../src/DQLAuthentication';
 import { DQLEndpoint } from '../src/DQLEndpoint';
 import { DQLEndpointController } from '../src/DQLEndpointController';
 import { firebaseSignupEmailPassword } from '../src/firebase-auth';
 import handleFirebaseError from '../src/firebase-auth/handleFirebaseError';
 
-const validationMethods: HttpMethod[] = [
-    'POST'
-]
-
-const register: DQLEndpoint = {
+const register: DQLEndpoint<RegisterController> = {
 
     resourcePath: '/register',
     body: {},
@@ -31,7 +26,6 @@ const register: DQLEndpoint = {
 
 }
 
-
 class RegisterController extends DQLEndpointController {
 
     /**
@@ -43,7 +37,7 @@ class RegisterController extends DQLEndpointController {
      * @param {NextFunction} next
      */
     async environment(request: Request, response: Response, next: NextFunction) {
-        EnvironmentValidationMiddleware(register.env , FirebaseAuthEnvironmentSchema , FirebaseAuthEnvironmentMessage )(request, response, next)
+        EnvironmentValidationMiddleware(register.env, FirebaseAuthEnvironmentSchema, FirebaseAuthEnvironmentMessage)(request, response, next)
     }
 
     /**
@@ -110,14 +104,13 @@ class RegisterController extends DQLEndpointController {
             const error = handleFirebaseError(responseError)
             response.status(error.error.code).send(error)
         })
-   
+
         response.status(200).send(result)
     }
 
-
 }
 
-register.controller = RegisterController
+register.controller = new RegisterController
 
 export default {
     resourcePath: register.resourcePath,

@@ -1,7 +1,12 @@
 import { DQLEndpoint } from './DQLEndpoint';
 import { DQLEndpointController } from './DQLEndpointController';
+import { dqllog } from '../log';
 
-export class DQLEndpointManager {
+interface EndpointList<T extends DQLEndpointController>{
+    [key:string]: DQLEndpoint<T>
+}
+
+export class DQLEndpointManager<T extends DQLEndpointController> {
 
     /**
      *
@@ -9,13 +14,13 @@ export class DQLEndpointManager {
      * @type {{ [id: string]: DQLEndpoint }}
      * @memberof BodyDQL
      */
-    data: { [id: string]: DQLEndpoint }
+    data: EndpointList<T>
 
     constructor () {
         this.data = {}
     }
 
-    map(endpoint: DQLEndpoint, method: 'ITEM' | 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'): DQLEndpoint {
+    map(endpoint: DQLEndpoint<T> , method: string): DQLEndpoint<T> {
         let d = Object.create(endpoint)
         d.method = method === 'ITEM' ? 'GET' : method
         switch (method) {
@@ -48,7 +53,7 @@ export class DQLEndpointManager {
      * @returns
      * @memberof DQLEndpointManager
      */
-    add(name: string, endpoint: DQLEndpoint, skipController: boolean = false) {
+    add(name: string, endpoint: DQLEndpoint<T>, skipController: boolean = false) {
 
         if (endpoint.controller !== undefined && !skipController) {
             return this.addControllerEndpoints(endpoint, endpoint.controller, name);
@@ -64,6 +69,7 @@ export class DQLEndpointManager {
                 break
             default:
                 this.data[`${name}|${endpoint.method}`] = endpoint
+                
         }
 
     }
@@ -76,7 +82,7 @@ export class DQLEndpointManager {
      * @returns {string[]}
      * @memberof DQLEndpointManager
      */
-    getControllerKeys<T extends DQLEndpointController>(controller: T): string[] {
+    getControllerKeys(controller: T): string[] {
 
         switch (typeof controller) {
             case 'function':
@@ -84,6 +90,7 @@ export class DQLEndpointManager {
                 break;
             case 'object':
                 if (controller instanceof DQLEndpointController) {
+                    dqllog('getController Keys' ,  Object.getOwnPropertyNames(Object.getPrototypeOf(controller)))
                     return Object.getOwnPropertyNames(Object.getPrototypeOf(controller))
                 } else {
                     return Object.keys(controller)
@@ -95,30 +102,6 @@ export class DQLEndpointManager {
     }
 
     /**
-     * Returns the prototype for the controller
-     *
-     * @template T
-     * @param {T} controller
-     * @returns {DQLEndpointController}
-     * @memberof DQLEndpointManager
-     */
-    getControllerPrototype<T extends DQLEndpointController>(controller: T): DQLEndpointController {
-        switch (typeof controller) {
-            case 'function':
-                return (controller as DQLEndpointController).prototype
-            case 'object':
-                if (controller instanceof DQLEndpointController) {
-                    return (controller as DQLEndpointController).prototype
-                } else {
-                    return controller
-                }
-                break
-            default:
-                throw new Error('not knowing what is going on here')
-        }
-    }
-
-    /**
      * Method adds an endpoint for all methods in the controller which match HttpMethod
      *
      * @param {DQLEndpoint} endpoint
@@ -126,64 +109,70 @@ export class DQLEndpointManager {
      * @param {string} name
      * @memberof DQLEndpointManager
      */
-    addControllerEndpoints(endpoint: DQLEndpoint, controller: DQLEndpointController, name: string): void {
-
-        const endpointController = this.getControllerPrototype(controller)
-        const { validation, handlesMethod, environment, headers } = endpointController
+    addControllerEndpoints(endpoint: DQLEndpoint<T>, controller: T, name: string): void {
 
         this.getControllerKeys(controller).forEach(key => {
 
-            switch (key) {
-                case 'get':
-                    let get_endpoint = this.map({
-                        ...endpoint,
-                        controller: undefined,
-                        middleware: endpointController[key]
-                    }, 'GET')
-                    this.add(get_endpoint.resourcePath, get_endpoint, true);
-                    break;
-                case 'post':
-                    let post_endpoint = this.map({
-                        ...endpoint,
-                        controller: { environment, validation, headers, handlesMethod },
-                        middleware: endpointController[key]
-                    }, 'POST')
-                    this.add(post_endpoint.resourcePath, post_endpoint, true);
-                    break;
-                case 'item':
-                    let item_endpoint = this.map({
-                        ...endpoint,
-                        controller: undefined,
-                        middleware: endpointController[key]
-                    }, 'ITEM')
-                    this.add(item_endpoint.resourcePath, item_endpoint, true);
-                    break;
-                case 'patch':
-                    let patch_endpoint = this.map({
-                        ...endpoint,
-                        controller: { environment, validation, headers, handlesMethod },
-                        middleware: endpointController[key]
-                    }, 'PATCH')
-                    this.add(patch_endpoint.resourcePath, patch_endpoint, true);
-                    break;
-                case 'put':
-                    let put_endpoint = this.map({
-                        ...endpoint,
-                        controller: { environment, validation, headers, handlesMethod },
-                        middleware: endpointController[key]
-                    }, 'PUT')
-                    this.add(put_endpoint.resourcePath, put_endpoint, true);
-                    break;
-                case 'delete':
-                    let delete_endpoint = this.map({
-                        ...endpoint,
-                        controller: { environment, validation, headers, handlesMethod },
-                        middleware: endpointController[key]
-                    }, 'DELETE')
-                    this.add(delete_endpoint.resourcePath, delete_endpoint, true);
-                    break;
-                default: break;
+            if([ 'get' ,  'post' , 'item' , 'patch' , 'delete' , 'patch' ].includes(key)) {
+                let get_endpoint = this.map({
+                    ...endpoint,
+                    controller,
+                    middleware: controller[key].bind(controller)
+                }, key.toUpperCase())
+                this.add(get_endpoint.resourcePath, get_endpoint, true);
             }
+
+            // switch (key) {
+            //     case 'get':
+            //         let get_endpoint = this.map({
+            //             ...endpoint,
+            //             controller: undefined,
+            //             middleware: controller[key]
+            //         }, 'GET')
+            //         this.add(get_endpoint.resourcePath, get_endpoint, true);
+            //         break;
+            //     case 'post':
+            //         let post_endpoint = this.map({
+            //             ...endpoint,
+            //             controller,
+            //             middleware: controller[key].bind(controller)
+            //         }, 'POST')
+            //         this.add(post_endpoint.resourcePath, post_endpoint, true);
+            //         break;
+            //     case 'item':
+            //         let item_endpoint = this.map({
+            //             ...endpoint,
+            //             controller,
+            //             middleware: controller[key]
+            //         }, 'ITEM')
+            //         this.add(item_endpoint.resourcePath, item_endpoint, true);
+            //         break;
+            //     case 'patch':
+            //         let patch_endpoint = this.map({
+            //             ...endpoint,
+            //             controller,
+            //             middleware: controller[key]
+            //         }, 'PATCH')
+            //         this.add(patch_endpoint.resourcePath, patch_endpoint, true);
+            //         break;
+            //     case 'put':
+            //         let put_endpoint = this.map({
+            //             ...endpoint,
+            //             controller,
+            //             middleware: controller[key]
+            //         }, 'PUT')
+            //         this.add(put_endpoint.resourcePath, put_endpoint, true);
+            //         break;
+            //     case 'delete':
+            //         let delete_endpoint = this.map({
+            //             ...endpoint,
+            //             controller,
+            //             middleware: controller[key]
+            //         }, 'DELETE')
+            //         this.add(delete_endpoint.resourcePath, delete_endpoint, true);
+            //         break;
+            //     default: break;
+            // }
         });
     }
 
@@ -204,7 +193,7 @@ export class DQLEndpointManager {
      * @returns {{ resourcePath: string, endpoint: DQLEndpoint }[]}
      * @memberof DQLEndpointManager
      */
-    getEndpoints(): { resourcePath: string, endpoint: DQLEndpoint }[] {
+    getEndpoints(): { resourcePath: string, endpoint: DQLEndpoint<T> }[] {
         return Object.keys(this.data).map(key => {
             return {
                 resourcePath: key.split('|')[0],
@@ -246,7 +235,7 @@ export class DQLEndpointManager {
      * @returns {DQLEndpoint}
      * @memberof BodyDQL
      */
-    getEndpoint(key: string): DQLEndpoint {
+    getEndpoint(key: string): DQLEndpoint<T> {
         if (this.data[key] === undefined) {
             throw new Error(`endpoint with key ${key} does not exist`)
         }

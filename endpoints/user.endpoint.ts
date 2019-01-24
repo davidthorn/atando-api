@@ -6,16 +6,19 @@ import { UserDeleteSchema } from "../schema/users/UserDelete.schema";
 import { UserPatchSchema } from "../schema/users/UserPatch.schema";
 import { DQLEndpoint } from "../src/DQLEndpoint";
 import { DQLEndpointController } from "../src/DQLEndpointController";
+import { dqllog } from "../log";
+import { HttpMethod } from "../src/DQLAuthentication";
 
 class UserController extends DQLEndpointController {
 
     constructor () {
         super()
+        this.excludeMethods.push('GET' , 'DELETE')
     }
 
     async headers(request: Request, response: Response, next: NextFunction) {
 
-        if (['DELETE', 'GET'].includes(request.method)) {
+        if (!this.shouldValidate(request.method as HttpMethod ) ) {
             return next()
         }
 
@@ -36,6 +39,10 @@ class UserController extends DQLEndpointController {
     }
 
     async validation(request: Request, response: Response, next: NextFunction) {
+
+        if (!this.shouldValidate(request.method as HttpMethod ) ) {
+            return next()
+        }
 
         let objectSchema: Joi.ObjectSchema
 
@@ -134,6 +141,9 @@ class UserController extends DQLEndpointController {
     }
 
     async item(request: Request, response: Response, next: NextFunction) {
+
+        dqllog('User Item Request' , request)
+
         let repo = new UserRepository()
         let user = repo.get(request.params.id)
 
@@ -166,6 +176,9 @@ class UserController extends DQLEndpointController {
 
     async get(request: Request, response: Response, next: NextFunction) {
         let repo = new UserRepository()
+
+        dqllog('Users get' , request)
+
         let users = repo.all()
         response.status(200).send(users)
     }
@@ -173,11 +186,11 @@ class UserController extends DQLEndpointController {
 }
 
 
-const user: DQLEndpoint = {
+const user: DQLEndpoint<UserController> = {
     resourcePath: '/user',
     method: 'POST',
     body: {},
-    controller: UserController
+    controller: new UserController
 }
 
 const endpoint = {

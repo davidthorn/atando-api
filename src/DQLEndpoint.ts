@@ -7,7 +7,7 @@ export interface DQLEndpointOptions {
     publicDir?: string
 }
 
-export interface DQLEndpoint {
+export interface DQLEndpoint<T extends DQLEndpointController> {
 
     /**
      *
@@ -28,5 +28,5 @@ export interface DQLEndpoint {
 
     env?: { [id: string]: string | undefined }
 
-    controller?: DQLEndpointController
+    controller?: T
 };

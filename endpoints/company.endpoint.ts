@@ -6,16 +6,18 @@ import { CompanyDeleteSchema } from "../schema/companies/CompanyDelete.schema";
 import { CompanyPatchSchema } from "../schema/companies/CompanyPatch.schema";
 import { DQLEndpoint } from "../src/DQLEndpoint";
 import { DQLEndpointController } from "../src/DQLEndpointController";
+import { HttpMethod } from "../src/DQLAuthentication";
 
 class CompanyController extends DQLEndpointController {
 
     constructor () {
         super()
+        this.excludeMethods.push('GET' , 'DELETE')
     }
 
     async headers(request: Request, response: Response, next: NextFunction) {
 
-        if( [ 'DELETE' , 'GET' ].includes(request.method)) {
+        if (!this.shouldValidate(request.method as HttpMethod) ) {
             return next()
         }
 
@@ -36,6 +38,10 @@ class CompanyController extends DQLEndpointController {
     }
 
     async validation(request: Request, response: Response, next: NextFunction) {
+
+        if (!this.shouldValidate(request.method as HttpMethod) ) {
+            return next()
+        }
 
         let objectSchema: Joi.ObjectSchema
 
@@ -154,11 +160,11 @@ class CompanyController extends DQLEndpointController {
 }
 
 
-const company: DQLEndpoint = {
+const company: DQLEndpoint<CompanyController> = {
     resourcePath: '/companies',
     method: 'POST',
     body: {},
-    controller: CompanyController
+    controller: new CompanyController
 }
 
 const endpoint = {

@@ -274,17 +274,17 @@ export class DQLServer<T extends DQLEndpointController> {
 
                     if (environment !== undefined) {
                         dqllog(`Adding Environment middleware: ${data.resourcePath}:${data.endpoint.method}`)
-                        this.callMethod(method, resourcePath, environment)
+                        this.callMethod(method, resourcePath, environment.bind(controller))
                     }
 
                     if (headers !== undefined) {
                         dqllog(`Adding Headers middleware: ${data.resourcePath}:${data.endpoint.method}`)
-                        this.callMethod(method, resourcePath, headers)
+                        this.callMethod(method, resourcePath, headers.bind(controller))
                     }
 
                     if (validation !== undefined) {
                         dqllog(`Adding Validaton middleware: ${data.resourcePath}:${data.endpoint.method}`)
-                        this.callMethod(method, resourcePath, validation)
+                        this.callMethod(method, resourcePath, validation.bind(controller))
                     }
 
                     dqllog(`Adding ${method} middleware: ${data.resourcePath}:${data.endpoint.method}`)
